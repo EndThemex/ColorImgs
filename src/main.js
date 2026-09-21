@@ -183,8 +183,19 @@ function renderToolbar() {
     el("section", { class: "toolbar" }, [
       el("div", { class: "upload-card" }, [
         el("h2", {}, "上传到图床"),
-        el("div", { class: "upload-row" }, [
+        el("div", { class: "upload-fields" }, [
           el("label", {}, [
+            "名称（可选，留空取文件名）",
+            el("input", { id: "up-name", type: "text" }),
+          ]),
+          el("label", {}, [
+            "标签（英文逗号分隔）",
+            buildTagInput([], { id: "up-tags" }),
+          ]),
+        ]),
+        el("details", { class: "upload-extra" }, [
+          el("summary", {}, "高级选项"),
+          el("label", { class: "upload-extra-field" }, [
             "CDN 域名（可选）",
             el("input", {
               id: "cdn-domain",
@@ -203,39 +214,24 @@ function renderToolbar() {
             ]),
           ]),
         ]),
-        el("div", { class: "upload-row" }, [
-          el("label", {}, [
-            "名称（可选，留空取文件名）",
-            el("input", { id: "up-name", type: "text" }),
-          ]),
-          el("label", {}, [
-            "标签（英文逗号分隔）",
-            el("input", {
-              id: "up-tags",
-              type: "text",
-              placeholder: "壁纸, 风景",
-            }),
-          ]),
-        ]),
-        el("div", { class: "upload-row" }, [
-          el("label", { class: "file-drop" }, [
-            "点击或拖拽图片到此处上传",
-            el("input", {
-              id: "file-input",
-              type: "file",
-              accept: "image/*",
-              multiple: "multiple",
-              onchange: (e) => {
-                const fields = {
-                  name: document.querySelector("#up-name").value.trim(),
-                  tags: document.querySelector("#up-tags").value.trim(),
-                  note: "",
-                };
-                handleFiles(e.target.files, fields);
-                e.target.value = "";
-              },
-            }),
-          ]),
+        el("label", { class: "file-drop" }, [
+          "点击或拖拽图片到此处上传",
+          el("input", {
+            id: "file-input",
+            type: "file",
+            accept: "image/*",
+            multiple: "multiple",
+            onchange: (e) => {
+              const fields = {
+                name: document.querySelector("#up-name").value.trim(),
+                tags: document.querySelector("#up-tags").value.trim(),
+                note: "",
+              };
+              handleFiles(e.target.files, fields);
+              resetUploadTags();
+              e.target.value = "";
+            },
+          }),
         ]),
         el("div", { id: "upload-queue-wrap" }),
       ]),
@@ -275,7 +271,7 @@ function buildFab() {
       "label",
       { class: "fab-btn", title: "导入 JSON", "aria-label": "导入 JSON" },
       [
-        iconUpload(),
+        iconDownload(),
         el("input", {
           type: "file",
           accept: "application/json",
@@ -292,7 +288,7 @@ function buildFab() {
         "aria-label": "导出 JSON",
         onclick: onExport,
       },
-      iconDownload(),
+      iconUpload(),
     ),
     el(
       "button",
@@ -739,11 +735,11 @@ function closeDetail() {
   state.detail = null;
 }
 
-function buildTagInput(initialTags) {
+function buildTagInput(initialTags, { id = "edit-tags" } = {}) {
   const wrap = el("div", { class: "tag-input-wrap" });
   const hidden = el("input", {
     type: "hidden",
-    id: "edit-tags",
+    id,
     value: initialTags.join(","),
   });
   const input = el("input", {
@@ -821,6 +817,20 @@ function buildTagInput(initialTags) {
   wrap.appendChild(input);
   renderChips();
   return wrap;
+}
+
+function resetUploadTags() {
+  const hidden = document.querySelector("#up-tags");
+  if (!hidden) return;
+  hidden.value = "";
+  const wrap = hidden.parentElement;
+  if (!wrap) return;
+  wrap.querySelectorAll(".tag-input-chip").forEach((n) => n.remove());
+  const input = wrap.querySelector(".tag-input");
+  if (input) {
+    input.value = "";
+    input.placeholder = "壁纸, 风景";
+  }
 }
 
 async function onSave(id) {
@@ -934,6 +944,7 @@ function bindDropZone() {
         note: "",
       };
       handleFiles(files, fields);
+      resetUploadTags();
     }
   });
 }

@@ -144,8 +144,7 @@ export async function listImages({
   }
   const whereSql = where.length ? ` WHERE ${where.join(" AND ")}` : "";
   const orderLimit =
-    ` ORDER BY created_at DESC` +
-    (limit > 0 ? ` LIMIT ? OFFSET ?` : ``);
+    ` ORDER BY created_at DESC` + (limit > 0 ? ` LIMIT ? OFFSET ?` : ``);
   const sql = `SELECT * FROM images${whereSql}${orderLimit}`;
   const stmt = db.prepare(sql);
   const allParams = limit > 0 ? [...params, limit, offset] : params;
@@ -155,9 +154,7 @@ export async function listImages({
   stmt.free();
 
   if (limit > 0) {
-    const countStmt = db.prepare(
-      `SELECT COUNT(*) AS c FROM images${whereSql}`,
-    );
+    const countStmt = db.prepare(`SELECT COUNT(*) AS c FROM images${whereSql}`);
     countStmt.bind(params);
     let total = 0;
     if (countStmt.step()) total = countStmt.get()[0];
@@ -214,49 +211,63 @@ export async function importJSON(payload) {
   let added = 0;
   let merged = 0;
   let skipped = 0;
-  const findStmt = db.prepare(`SELECT * FROM images WHERE url = ?`);
-  const insertStmt = db.prepare(
-    `INSERT INTO images (url, name, tags, note, created_at)
-     VALUES (?, ?, ?, ?, ?)`,
-  );
-  const updateStmt = db.prepare(
-    `UPDATE images SET
-       name = COALESCE(NULLIF(?, ''), name),
-       tags = ?,
-       note = COALESCE(NULLIF(?, ''), note)
-     WHERE url = ?`,
-  );
-  for (const it of payload.images) {
-    if (!it || typeof it.url !== "string" || !it.url) {
-      skipped++;
-      continue;
-    }
-    findStmt.run([it.url]);
-    if (findStmt.step()) {
-      const existing = rowToObj(findStmt, findStmt.get());
-      findStmt.reset();
-      const mergedTags = mergeTags(existing.tags, it.tags || "");
-      if (mergedTags === existing.tags) {
+  db.run(`BEGIN`);
+  try {
+    const findStmt = db.prepare(`SELECT * FROM images WHERE url = ?`);
+    const updateStmt = db.prepare(
+      `UPDATE images SET
+         name = COALESCE(NULLIF(?, ''), name),
+         tags = ?,
+         note = COALESCE(NULLIF(?, ''), note)
+       WHERE url = ?`,
+    );
+    for (const it of payload.images) {
+      if (!it || typeof it.url !== "string" || !it.url) {
         skipped++;
         continue;
       }
-      updateStmt.run([it.name || "", mergedTags, it.note || "", it.url]);
-      merged++;
-    } else {
-      findStmt.reset();
-      insertStmt.run([
-        it.url,
-        it.name || "",
-        it.tags || "",
-        it.note || "",
-        it.created_at || Date.now(),
-      ]);
-      added++;
+      findStmt.run([it.url]);
+      if (findStmt.step()) {
+        const existing = rowToObj(findStmt, findStmt.get());
+        findStmt.reset();
+        const mergedTags = mergeTags(existing.tags, it.tags || "");
+        if (mergedTags === existing.tags) {
+          skipped++;
+          continue;
+        }
+        updateStmt.run([it.name || "", mergedTags, it.note || "", it.url]);
+        merged++;
+      } else {
+        findStmt.reset();
+        try {
+          db.run(
+            `INSERT INTO images (url, name, tags, note, created_at)
+             VALUES (?, ?, ?, ?, ?)`,
+            [
+              it.url,
+              it.name || "",
+              it.tags || "",
+              it.note || "",
+              it.created_at || Date.now(),
+            ],
+          );
+          added++;
+        } catch (e) {
+          if (String(e && e.message).includes("UNIQUE")) {
+            skipped++;
+          } else {
+            throw e;
+          }
+        }
+      }
     }
+    findStmt.free();
+    updateStmt.free();
+    db.run(`COMMIT`);
+  } catch (e) {
+    db.run(`ROLLBACK`);
+    throw e;
   }
-  findStmt.free();
-  insertStmt.free();
-  updateStmt.free();
   await persist();
   return { added, merged, skipped, total: payload.images.length };
 }
