@@ -276,7 +276,10 @@ function buildFab() {
           type: "file",
           accept: "application/json",
           style: "display:none",
-          onchange: (e) => onImport(e.target.files[0]),
+          onchange: (e) => {
+            onImport(e.target.files[0]);
+            e.target.value = "";
+          },
         }),
       ],
     ),
@@ -836,7 +839,7 @@ function resetUploadTags() {
 async function onSave(id) {
   const name = document.querySelector("#edit-name").value.trim();
   const hidden = document.querySelector("#edit-tags");
-  const pending = document.querySelector(".tag-input");
+  const pending = document.querySelector(".modal .tag-input");
   let tags = hidden ? hidden.value : "";
   if (pending && pending.value.trim()) {
     const cur = splitTags(tags);

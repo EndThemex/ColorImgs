@@ -5,14 +5,14 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 5533",
+    "dev": "bun run scripts/dev.js",
+    "dev:web": "vite",
+    "dev:api": "bun --cwd server start",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start:api": "bun --cwd server start"
   },
   "devDependencies": {
     "vite": "^8.3.0"
-  },
-  "dependencies": {
-    "sql.js": "^1.14.2"
   }
 }
