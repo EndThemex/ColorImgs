@@ -99,6 +99,7 @@ h2 {
 
 input[type='text'],
 input[type='search'],
+input[type='password'],
 textarea {
   font: inherit;
   width: 100%;
@@ -115,6 +116,33 @@ input:focus,
 textarea:focus {
   border-color: var(--accent-border);
   box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+select {
+  font: inherit;
+  width: 100%;
+  padding: 7px 30px 7px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238a8a8a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
+  color: var(--text-h);
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+select:focus {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 textarea {
@@ -179,8 +207,199 @@ label {
   display: none;
 }
 
-/* ---------- Top bar ---------- */
-/* Top bar removed for a cleaner layout. */
+/* ---------- FAB user menu ---------- */
+.user-menu {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 150px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  z-index: 45;
+}
+
+.user-menu-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.user-name {
+  color: var(--text-h);
+  font-weight: 500;
+}
+
+.user-role {
+  font-size: 11px;
+  padding: 1px 8px;
+  border-radius: 99px;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.user-role.role-admin {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ---------- Scope switch (普通用户) ---------- */
+.scope-switch {
+  display: inline-flex;
+  background: var(--surface-2);
+  border-radius: 99px;
+  padding: 2px;
+  gap: 2px;
+  align-self: flex-start;
+}
+
+.scope-btn {
+  font: inherit;
+  font-size: 12px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  padding: 4px 12px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.scope-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ---------- Filter card ---------- */
+.filter-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 26px;
+}
+
+.filter-head .scope-switch {
+  align-self: center;
+}
+
+.filter-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-search input[type="search"] {
+  flex: 1;
+  width: auto;
+}
+
+.filter-search .btn-small {
+  flex-shrink: 0;
+}
+
+/* ---------- Login / password modal ---------- */
+.login-card {
+  width: min(400px, 100%);
+}
+
+.login-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.login-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--surface-2);
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+/* ---------- Users management ---------- */
+.users-card {
+  width: min(560px, 100%);
+}
+
+.users-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.users-add h3,
+.users-list-wrap h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--text-h);
+}
+
+.users-add-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.8fr);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 640px) {
+  .users-add-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 140px;
+  max-height: 50vh;
+  overflow: auto;
+}
+
+.users-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.users-row-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-h);
+}
+
+.users-row-self {
+  font-size: 10px;
+  padding: 1px 6px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-radius: 99px;
+}
+
+.users-row select {
+  font-size: 12px;
+  padding: 4px 26px 4px 8px;
+}
+
+.meta-tags.readonly {
+  min-height: 20px;
+}
 
 /* ---------- Buttons ---------- */
 .btn {
@@ -233,17 +452,6 @@ label {
 .btn-small {
   padding: 4px 10px;
   font-size: 12px;
-}
-
-.btn-text {
-  background: transparent;
-  color: var(--accent);
-  border: none;
-  font-size: 12px;
-  padding: 4px 0;
-}
-.btn-text:hover {
-  text-decoration: underline;
 }
 
 /* ---------- Toolbar (upload + filter) ---------- */
@@ -586,10 +794,16 @@ label {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 24px;
   z-index: 50;
   opacity: 0;
   transition: opacity 0.18s;
+}
+
+@media (max-width: 480px) {
+  .modal {
+    padding: 12px;
+  }
 }
 
 .modal.show {
@@ -597,7 +811,7 @@ label {
 }
 
 .modal-card {
-  width: min(960px, 100%);
+  width: min(720px, 100%);
   max-height: 90vh;
   background: var(--surface);
   border-radius: 12px;
@@ -615,11 +829,12 @@ label {
 
 .modal-head,
 .modal-foot {
-  padding: 12px 16px;
+  padding: 14px 20px;
   display: flex;
   align-items: center;
   gap: 8px;
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 .modal-foot {
@@ -670,7 +885,7 @@ label {
   align-items: center;
   justify-content: center;
   min-height: 240px;
-  padding: 12px;
+  padding: 16px;
 }
 
 .modal-preview img {
@@ -682,10 +897,10 @@ label {
 }
 
 .modal-fields {
-  padding: 16px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 
 .url-row {
